@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "typescript": "^6.0.3"
+  },
+
+  "scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "build": "tsc"
+}
+}
