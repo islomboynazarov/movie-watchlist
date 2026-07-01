@@ -120,41 +120,43 @@ function renderWatchlist(): void {
 
 // ==================== Search Functionality ====================
 
-async function searchMovies(query) {
-  try {
-    const response = await fetch(`http://www.omdbapi.com/?apikey=e72f9e6f&s=${query}`);
-    const data = await response.json();
+const OMDB_API_KEY = "e72f9e6f";
 
-    if (data.Response === "False") {
-      resultsContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">No movies found for "${query}"</p>`;
+async function searchMovies(query: string): Promise<void> {
+  try {
+    resultsContainer.innerHTML = `
+      <p style="grid-column: 1/-1; text-align: center; color: #64748b;">
+        Searching for "${query}"...
+      </p>`;
+
+    const response = await fetch(
+      `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(query)}`
+    );
+
+    const data: OmdbSearchResponse = await response.json();
+
+    if (data.Response === "False" || !data.Search) {
+      resultsContainer.innerHTML = `
+        <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
+          No movies found for "${query}"
+        </p>`;
       return;
     }
 
-    resultsContainer.innerHTML = '';   // Clear previous results
-
-    // data.Search is an array of movie objects from OMDB
-    data.Search.forEach(movieData => {
+    resultsContainer.innerHTML = "";
+    data.Search.forEach((movieData) => {
       const movie = new Movie(movieData);
-      const card = movie.createCard(false);   // false = show "Add" button
+      const card = movie.createCard(false);
       resultsContainer.appendChild(card);
     });
-
   } catch (error) {
     console.error("Search error:", error);
-    resultsContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Something went wrong. Please try again.</p>`;
+    resultsContainer.innerHTML = `
+      <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
+        Something went wrong. Please try again later.
+      </p>`;
   }
 }
-
-// Handle search form submission
-searchForm.addEventListener('submit', (event) => {
-  event.preventDefault();                    // Stop page from reloading
-  const query = searchInput.value.trim();
-
-  if (query) {
-    searchMovies(query);
-  }
-});
-
 
 // ==================== Add to Watchlist Logic ====================
 
