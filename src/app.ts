@@ -1,4 +1,4 @@
-// ==================== Interfaces ====================
+// ==================== Types & Interfaces ====================
 interface OmdbMovieBasic {
   imdbID: string;
   Title: string;
@@ -17,7 +17,6 @@ interface OmdbSearchResponse {
   Response: string;
   Error?: string;
 }
-
 
 // ==================== Movie Class ====================
 class Movie {
@@ -97,7 +96,7 @@ const resultsContainer = document.getElementById("results-container") as HTMLDiv
 const watchlistContainer = document.getElementById("watchlist-container") as HTMLDivElement;
 const watchlistCount = document.getElementById("watchlist-count") as HTMLElement;
 
-// ==================== Render Watchlist Function ====================
+// ==================== Render Watchlist ====================
 function renderWatchlist(): void {
   watchlistContainer.innerHTML = "";
 
@@ -119,78 +118,36 @@ function renderWatchlist(): void {
 }
 
 // ==================== Search Functionality ====================
-
-const OMDB_API_KEY = "e72f9e6f";
-
 async function searchMovies(query: string): Promise<void> {
   try {
-    resultsContainer.innerHTML = `
-      <p style="grid-column: 1/-1; text-align: center; color: #64748b;">
-        Searching for "${query}"...
-      </p>`;
+    resultsContainer.innerHTML = `<p>Searching for "${query}"...</p>`;
 
-    const response = await fetch(
-      `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(query)}`
-    );
+    const url = `http://www.omdbapi.com/?apikey=e72f9e6f&s=${encodeURIComponent(query)}`;
+    console.log("Fetching from:", url);   // ← Add this for debugging
+
+    const response = await fetch(url);
+    console.log("Response status:", response.status);
 
     const data: OmdbSearchResponse = await response.json();
+    console.log("API Response:", data);   // ← Very important
 
     if (data.Response === "False" || !data.Search) {
       resultsContainer.innerHTML = `
-        <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
-          No movies found for "${query}"
-        </p>`;
+        <p style="color: #ef4444;">No movies found for "${query}".<br>Error: ${data.Error || 'Unknown'}</p>`;
       return;
     }
 
-    resultsContainer.innerHTML = "";
-    data.Search.forEach((movieData) => {
+    resultsContainer.innerHTML = '';
+    data.Search.forEach(movieData => {
       const movie = new Movie(movieData);
-      const card = movie.createCard(false);
-      resultsContainer.appendChild(card);
+      resultsContainer.appendChild(movie.createCard(false));
     });
+
   } catch (error) {
-    console.error("Search error:", error);
-    resultsContainer.innerHTML = `
-      <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
-        Something went wrong. Please try again later.
-      </p>`;
+    console.error("Full Error:", error);
+    resultsContainer.innerHTML = `<p style="color: red;">Network error. Check console.</p>`;
   }
 }
-
-// ==================== Add to Watchlist Logic ====================
-
-function addToWatchlist(imdbID: string): void {
-  if (watchlist.some((movie) => movie.imdbID === imdbID)) {
-    alert("This movie is already in your watchlist!");
-    return;
-  }
-
-  fetch(`http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${imdbID}`)
-    .then((res) => res.json())
-    .then((movieData: OmdbMovieFull) => {
-      if (movieData.Response === "True") {
-        const newMovie = new Movie(movieData);
-        watchlist.push(newMovie);
-
-        saveToLocalStorage(watchlist);
-        renderWatchlist();
-
-        alert(`${newMovie.title} added to your watchlist!`);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to add movie:", err);
-      alert("Failed to add movie. Please try again.");
-    });
-}
-
-function removeFromWatchlist(imdbID: string): void {
-  watchlist = watchlist.filter((movie) => movie.imdbID !== imdbID);
-  saveToLocalStorage(watchlist);
-  renderWatchlist();
-}
-
 
 // ==================== Watchlist Operations ====================
 function addToWatchlist(imdbID: string): void {
