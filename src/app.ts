@@ -160,153 +160,115 @@ async function searchMovies(query: string): Promise<void> {
 
 // ==================== Add to Watchlist Logic ====================
 
-// This function adds a movie to watchlist
-function addToWatchlist(imdbID) {
-  // Check if already in watchlist
-  if (watchlist.some(movie => movie.imdbID === imdbID)) {
+function addToWatchlist(imdbID: string): void {
+  if (watchlist.some((movie) => movie.imdbID === imdbID)) {
     alert("This movie is already in your watchlist!");
     return;
   }
 
-  // For now, we will re-fetch the movie details from OMDB using imdbID
-  // This is not the most efficient, but it's simple and works well for learning
-  fetch(`http://www.omdbapi.com/?apikey=e72f9e6f&i=${imdbID}`)
-    .then(res => res.json())
-    .then(movieData => {
+  fetch(`http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${imdbID}`)
+    .then((res) => res.json())
+    .then((movieData: OmdbMovieFull) => {
       if (movieData.Response === "True") {
         const newMovie = new Movie(movieData);
-        
-        watchlist.push(newMovie);           // Add to our array
-        saveToLocalStorage(watchlist);      // Save to localStorage
-        renderWatchlist();                  // Refresh the watchlist UI
+        watchlist.push(newMovie);
+
+        saveToLocalStorage(watchlist);
+        renderWatchlist();
 
         alert(`${newMovie.title} added to your watchlist!`);
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Failed to add movie:", err);
       alert("Failed to add movie. Please try again.");
     });
 }
 
-// Event Delegation - One listener for all dynamic buttons
-document.addEventListener('click', (event) => {
-  const target = event.target;
-
-  // Add button clicked
-  if (target.classList.contains('add-btn')) {
-    const imdbID = target.dataset.id;
-    addToWatchlist(imdbID);
-  }
-
-  // Remove button clicked (we'll implement remove next)
-  if (target.classList.contains('remove-btn')) {
-    const imdbID = target.dataset.id;
-    removeFromWatchlist(imdbID);
-  }
-});
-
-
-// ==================== Remove from Watchlist ====================
-function removeFromWatchlist(imdbID) {
-  // Filter out the movie with matching imdbID
-  watchlist = watchlist.filter(movie => movie.imdbID !== imdbID);
-
-  // Save the updated list
+function removeFromWatchlist(imdbID: string): void {
+  watchlist = watchlist.filter((movie) => movie.imdbID !== imdbID);
   saveToLocalStorage(watchlist);
-
-  // Re-render the watchlist
   renderWatchlist();
-
-  // Optional: nice feedback
-  // alert("Movie removed from watchlist");   // you can uncomment if you want
 }
 
 
-// ==================== Final Polish & Extra Features ====================
+// ==================== Watchlist Operations ====================
+function addToWatchlist(imdbID: string): void {
+  if (watchlist.some((movie) => movie.imdbID === imdbID)) {
+    alert("This movie is already in your watchlist!");
+    return;
+  }
 
-// Clear search results button functionality
-function clearSearchResults() {
-  resultsContainer.innerHTML = `
-    <p style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
-      Search for movies to get started
-    </p>`;
-  searchInput.value = '';
-}
+  fetch(`http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${imdbID}`)
+    .then((res) => res.json())
+    .then((movieData: OmdbMovieFull) => {
+      if (movieData.Response === "True") {
+        const newMovie = new Movie(movieData);
+        watchlist.push(newMovie);
 
-// Add a "Clear Results" button to the header (optional but nice)
-const clearButton = document.createElement('button');
-clearButton.textContent = 'Clear Results';
-clearButton.style.marginLeft = '10px';
-clearButton.style.background = '#64748b';
+        saveToLocalStorage(watchlist);
+        renderWatchlist();
 
-clearButton.addEventListener('click', () => {
-  clearSearchResults();
-});
-
-document.getElementById('search-form').appendChild(clearButton);
-
-// Loading indicator while searching
-async function searchMovies(query) {
-  try {
-    // Show loading state
-    resultsContainer.innerHTML = `
-      <p style="grid-column: 1/-1; text-align: center; color: #64748b;">
-        Searching for "${query}"...
-      </p>`;
-
-    const response = await fetch(`http://www.omdbapi.com/?apikey=e72f9e6f&s=${query}`);
-    const data = await response.json();
-
-    if (data.Response === "False" || !data.Search) {
-      resultsContainer.innerHTML = `
-        <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
-          No movies found for "${query}"
-        </p>`;
-      return;
-    }
-
-    resultsContainer.innerHTML = ''; 
-
-    data.Search.forEach(movieData => {
-      const movie = new Movie(movieData);
-      const card = movie.createCard(false);   // false = Add button
-      resultsContainer.appendChild(card);
+        alert(`${newMovie.title} added to your watchlist!`);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to add movie:", err);
+      alert("Failed to add movie. Please try again.");
     });
+}
 
-  } catch (error) {
-    console.error("Search error:", error);
-    resultsContainer.innerHTML = `
-      <p style="grid-column: 1/-1; text-align: center; color: #ef4444;">
-        Something went wrong. Please try again later.
-      </p>`;
+function removeFromWatchlist(imdbID: string): void {
+  watchlist = watchlist.filter((movie) => movie.imdbID !== imdbID);
+  saveToLocalStorage(watchlist);
+  renderWatchlist();
+}
+
+// ==================== Event Listeners ====================
+function handleDocumentClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+
+  if (target.classList.contains("add-btn")) {
+    const imdbID = target.dataset.id;
+    if (imdbID) addToWatchlist(imdbID);
+  }
+
+  if (target.classList.contains("remove-btn")) {
+    const imdbID = target.dataset.id;
+    if (imdbID) removeFromWatchlist(imdbID);
   }
 }
 
-// Bonus: Show watchlist stats
-function updateWatchlistStats() {
-  const total = watchlist.length;
-  const moviesOnly = watchlist.filter(m => m.type === 'movie').length;
-  
-  console.log(`Watchlist Stats → Total: ${total} | Movies: ${moviesOnly}`);
-}
-
-// Call it after render
-const originalRenderWatchlist = renderWatchlist;
-renderWatchlist = function() {
-  originalRenderWatchlist.call(this);
-  updateWatchlistStats();
-};
-
-// Make search case-insensitive and trim spaces automatically
-searchForm.addEventListener('submit', (event) => {
+searchForm.addEventListener("submit", (event: SubmitEvent) => {
   event.preventDefault();
   const query = searchInput.value.trim();
-  
+
   if (query.length < 3) {
     alert("Please enter at least 3 characters to search");
     return;
   }
-  
+
   searchMovies(query);
 });
+
+// Clear Results Button
+const clearButton = document.createElement("button");
+clearButton.textContent = "Clear Results";
+clearButton.style.marginLeft = "10px";
+clearButton.style.background = "#64748b";
+
+clearButton.addEventListener("click", () => {
+  resultsContainer.innerHTML = `
+    <p style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+      Search for movies to get started
+    </p>`;
+  searchInput.value = "";
+});
+
+searchForm.appendChild(clearButton);
+
+// Global click handler (event delegation)
+document.addEventListener("click", handleDocumentClick);
+
+// ==================== Initialize ====================
+renderWatchlist();
