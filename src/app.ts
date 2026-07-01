@@ -63,21 +63,29 @@ class Movie {
 }
 
 // ==================== Storage Helper Functions ====================
-const WATCHLIST_KEY = 'myMovieWatchlist';
+const WATCHLIST_KEY = "myMovieWatchlist" as const;
 
-function saveToLocalStorage(watchlistArray) {
-  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlistArray));
+function saveToLocalStorage(watchlist: Movie[]): void {
+  const dataToSave = watchlist.map((movie) => ({
+    imdbID: movie.imdbID,
+    Title: movie.title,
+    Year: movie.year,
+    Poster: movie.poster,
+    Type: movie.type,
+    Plot: movie.plot,
+  }));
+
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(dataToSave));
 }
 
-function getFromLocalStorage() {
+function getFromLocalStorage(): OmdbMovieFull[] {
   const data = localStorage.getItem(WATCHLIST_KEY);
   return data ? JSON.parse(data) : [];
 }
 
-// Load saved movies and turn them back into Movie objects
-function loadWatchlist() {
+function loadWatchlist(): Movie[] {
   const savedMovies = getFromLocalStorage();
-  return savedMovies.map(movieData => new Movie(movieData));
+  return savedMovies.map((movieData) => new Movie(movieData));
 }
 
 // ==================== State & DOM Elements ====================
