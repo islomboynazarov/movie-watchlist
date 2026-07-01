@@ -21,35 +21,43 @@ interface OmdbSearchResponse {
 
 // ==================== Movie Class ====================
 class Movie {
-  constructor(movieData) {
+  readonly imdbID: string;
+  readonly title: string;
+  readonly year: string;
+  readonly poster: string;
+  readonly type: string;
+  readonly plot: string;
+
+  constructor(movieData: OmdbMovieBasic | OmdbMovieFull) {
     this.imdbID = movieData.imdbID;
-    this.title  = movieData.Title;
-    this.year   = movieData.Year;
-    this.poster = movieData.Poster;
+    this.title = movieData.Title;
+    this.year = movieData.Year;
+    this.type = movieData.Type || "movie";
+    this.plot = (movieData as OmdbMovieFull).Plot || "No plot available";
 
     // Handle missing poster
-    if (this.poster === "N/A" || !this.poster) {
-      this.poster = "https://via.placeholder.com/300x450?text=No+Poster";
-    }
-
-    this.type   = movieData.Type || "movie";
-    this.plot   = movieData.Plot || "No plot available";
+    this.poster =
+      movieData.Poster === "N/A" || !movieData.Poster
+        ? "https://via.placeholder.com/300x450?text=No+Poster"
+        : movieData.Poster;
   }
 
-  createCard(isInWatchlist = false) {
-    const card = document.createElement('div');
-    card.className = 'movie-card';
+  createCard(isInWatchlist = false): HTMLDivElement {
+    const card = document.createElement("div");
+    card.className = "movie-card";
+
     card.innerHTML = `
-      <img src="${this.poster}" alt="${this.title}">
+      <img src="${this.poster}" alt="${this.title}" loading="lazy">
       <div class="movie-info">
         <h3>${this.title}</h3>
         <p>${this.year} • ${this.type}</p>
-        ${isInWatchlist 
-          ? `<button class="remove-btn" data-id="${this.imdbID}">Remove</button>` 
+        ${isInWatchlist
+          ? `<button class="remove-btn" data-id="${this.imdbID}">Remove</button>`
           : `<button class="add-btn" data-id="${this.imdbID}">Add to Watchlist</button>`
         }
       </div>
     `;
+
     return card;
   }
 }
