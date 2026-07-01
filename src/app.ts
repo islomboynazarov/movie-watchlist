@@ -89,14 +89,13 @@ function loadWatchlist(): Movie[] {
 }
 
 // ==================== State & DOM Elements ====================
-let watchlist = loadWatchlist();   // This loads saved movies (currently empty)
+let watchlist: Movie[] = loadWatchlist();
 
-// Get all HTML elements we need
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const resultsContainer = document.getElementById('results-container');
-const watchlistContainer = document.getElementById('watchlist-container');
-const watchlistCount = document.getElementById('watchlist-count');
+const searchForm = document.getElementById("search-form") as HTMLFormElement;
+const searchInput = document.getElementById("search-input") as HTMLInputElement;
+const resultsContainer = document.getElementById("results-container") as HTMLDivElement;
+const watchlistContainer = document.getElementById("watchlist-container") as HTMLDivElement;
+const watchlistCount = document.getElementById("watchlist-count") as HTMLElement;
 
 // ==================== Render Watchlist Function ====================
 function renderWatchlist() {
