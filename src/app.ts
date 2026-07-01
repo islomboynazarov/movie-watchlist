@@ -98,29 +98,25 @@ const watchlistContainer = document.getElementById("watchlist-container") as HTM
 const watchlistCount = document.getElementById("watchlist-count") as HTMLElement;
 
 // ==================== Render Watchlist Function ====================
-function renderWatchlist() {
-  watchlistContainer.innerHTML = '';   // Clear previous content
+function renderWatchlist(): void {
+  watchlistContainer.innerHTML = "";
 
   if (watchlist.length === 0) {
     watchlistContainer.innerHTML = `
       <p style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 2rem;">
         Your watchlist is empty.<br>Search for movies and add them!
       </p>`;
-    watchlistCount.textContent = '(0)';
+    watchlistCount.textContent = "(0)";
     return;
   }
 
-  // Create a card for every movie in watchlist
-  watchlist.forEach(movie => {
-    const card = movie.createCard(true);   // true = show Remove button
+  watchlist.forEach((movie) => {
+    const card = movie.createCard(true);
     watchlistContainer.appendChild(card);
   });
 
   watchlistCount.textContent = `(${watchlist.length})`;
 }
-
-// Initial render when page loads
-renderWatchlist();
 
 // ==================== Search Functionality ====================
 
